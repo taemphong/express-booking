@@ -166,6 +166,7 @@ export const loginuser = async (req, res) => {
 //ลบ user ออกจากระบบถ้า userมีการจองห้องประชุมค้างอยู่จะลบข้อมูลการจองออกด้วย
 export const deleteUser = async (req, res) => {
     const { id } = req.params; 
+    console.log(id)
 
     try {
         const result = await new UserService().deleteUser(id); 
