@@ -42,6 +42,13 @@ export default class BookingService {
         return rows;
     }
 
+    // ดึงด้วย id
+    async getBookingById(booking_id) {
+        const sql = 'SELECT * FROM meeting_room_booking WHERE booking_id = ?';
+        const [rows] = await pool.query(sql, [booking_id]);
+        return rows[0]; 
+    }
+
     // อัปเดตการจอง
     async updateBooking(booking_id, updateData) {
         const sql = 'UPDATE meeting_room_booking SET ? WHERE booking_id = ?';

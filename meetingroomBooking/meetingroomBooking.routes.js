@@ -6,8 +6,7 @@ const router = Router();
 
 router.post('/postbooking', bookingValidationRules(),meetingroomBookingController.addBookingController);
 router.get('/getbooking', meetingroomBookingController.getBookingsController);
-router.put('/updatebooking/:booking_id', meetingroomBookingController.updateBookingController);
-router.patch('/updatebookingstatus/:booking_id', isAdmin,meetingroomBookingController.updateBookingStatusController);
+router.patch('/editbooking/:booking_id', meetingroomBookingController.editBookingController);
 router.delete('/deletebooking/:booking_id', meetingroomBookingController.deleteBookingController);
 
 //  สำหรับ Admin

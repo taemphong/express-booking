@@ -195,7 +195,7 @@ export const deleteUser = async (req, res) => {
     }
 };
 
-//อัปเดตข้อมูล user มีการต้องตรวจสอบ username กับ password ก่อนนะเปลี่ยนแปลงข้อมูล
+//อัปเดตข้อมูล user ตามid
 export const updateUserController = async (req, res) => {
 
     const errors = validationResult(req);

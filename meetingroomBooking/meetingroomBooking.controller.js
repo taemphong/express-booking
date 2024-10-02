@@ -102,73 +102,93 @@ export const getBookingsController = async (req, res) => {
     }
 };
 
-//อัปเดตข้อมูล
-export const updateBookingController = async (req, res) => {
+//แก้ไขข้อมูล
+export const editBookingController = async (req, res) => {
     const { booking_id } = req.params;
-    const updateData = req.body;
+    const errors = validationResult(req);
+    
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+            status: "fail",
+            code: 0,
+            message: "Validation errors",
+            errors: errors.array(),
+        });
+    }
+
+    const updatedData = {
+        room_id: req.body.room_id,
+        booking_date: req.body.booking_date,
+        start_time: req.body.start_time,
+        end_time: req.body.end_time,
+        purpose: req.body.purpose || null,
+    };
 
     try {
         const bookingService = new BookingService();
-        const result = await bookingService.updateBooking(booking_id, updateData);
-        if (result.affectedRows) {
-            res.status(200).send({
+
+        // ตรวจสอบสถานะการจองก่อนแก้ไข
+        const booking = await bookingService.getBookingById(booking_id);
+        if (!booking) {
+            return res.status(404).json({
+                status: "fail",
+                code: 0,
+                message: "Booking not found",
+            });
+        }
+
+        // ห้ามแก้ไขหากสถานะการจองได้รับการอนุมัติแล้ว
+        if (booking.status === 'confrim') {
+            return res.status(400).json({
+                status: "fail",
+                code: 0,
+                message: "Cannot edit booking. It has already been confirmed.",
+            });
+        }
+
+        // ตรวจสอบว่าห้องว่างในช่วงเวลาที่แก้ไขใหม่หรือไม่
+        const isRoomAvailable = await bookingService.checkRoomAvailability(
+            updatedData.room_id, 
+            updatedData.booking_date, 
+            updatedData.start_time, 
+            updatedData.end_time
+        );
+
+        if (!isRoomAvailable) {
+            return res.status(400).json({
+                status: "fail",
+                code: 0,
+                message: "Room is not available for the selected time.",
+            });
+        }
+
+        // ถ้าห้องว่าง ให้ทำการอัปเดตข้อมูลการจอง
+        const result = await bookingService.updateBooking(booking_id, updatedData);
+
+        if (result.affectedRows > 0) {
+            res.status(200).json({
                 status: "success",
                 code: 1,
                 message: "Booking updated successfully",
                 result,
             });
         } else {
-            res.status(404).send({
+            res.status(400).json({
                 status: "fail",
                 code: 0,
-                message: "Booking not found",
-                result: "",
+                message: "Booking could not be updated",
             });
         }
     } catch (error) {
         console.log(error);
-        res.status(500).send({
+        res.status(500).json({
             status: "fail",
             code: 0,
             message: error.message,
-            result: "",
         });
     }
 };
 
-//อัปเดตสถานะ
-export const updateBookingStatusController = async (req, res) => {
-    const { booking_id } = req.params;
-    const { status } = req.body;
-
-    try {
-        const bookingService = new BookingService();
-        const result = await bookingService.updateBookingStatus(booking_id, status);
-        if (result.affectedRows) {
-            res.status(200).send({
-                status: "success",
-                code: 1,
-                message: "Booking status updated successfully",
-                result,
-            });
-        } else {
-            res.status(404).send({
-                status: "fail",
-                code: 0,
-                message: "Booking not found",
-                result: "",
-            });
-        }
-    } catch (error) {
-        console.log(error);
-        res.status(500).send({
-            status: "fail",
-            code: 0,
-            message: error.message,
-            result: "",
-        });
-    }
-};
 
 //ลบการจอง
 export const deleteBookingController = async (req, res) => {
