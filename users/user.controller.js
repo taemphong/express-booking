@@ -202,31 +202,31 @@ export const updateUserController = async (req, res) => {
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
+
     const { id } = req.params;
-    const { username, password, newPassword, firstname, lastname, email, department,  phone_number } = req.body;
+    const { username, firstname, lastname, email, department, phone_number } = req.body;
 
     try {
         // 1. ตรวจสอบข้อมูลผู้ใช้จาก username และ password ปัจจุบัน
         const userService = new UserService();
-        const hashedPassword = md5(password);
-        const user = await userService.loginuser(username, hashedPassword);
+        const user = await userService.getUserById(id);  // แทนที่ด้วยการดึงข้อมูลผู้ใช้จาก user_id
 
-        if (!user || user.length === 0) {
+        if (!user) {
             return res.status(401).send({
                 status: "fail",
                 code: 0,
-                message: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง",
+                message: "ไม่พบผู้ใช้",
                 result: "",
             });
         }
 
-        // 2. เตรียมข้อมูลที่ต้องการอัปเดต
+        // 2. เตรียมข้อมูลที่ต้องการอัปเดต โดยไม่แตะต้อง password_hash
         const updatedData = {
             username: username,
             firstname: firstname,
             lastname: lastname,
             email: email,
-            password_hash: newPassword ? md5(newPassword) : user.password_hash,  // อัปเดตรหัสผ่านถ้ามี
+            password_hash: user.password_hash,  // คงรหัสผ่านเดิม
             department: department,
             phone_number: phone_number,
         };
@@ -253,7 +253,7 @@ export const updateUserController = async (req, res) => {
             status: "error",
             code: 0,
             message: "เกิดข้อผิดพลาดในระบบ",
-            cause: error.message,
+            cause: "Error updating user: " + error.message,
             result: "",
         });
     }
