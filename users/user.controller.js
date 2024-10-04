@@ -128,7 +128,16 @@ export const loginuser = async (req, res) => {
                 result: {
                     user_id: user.user_id,
                     username: user.username,
+                    firstname: user.firstname,
+                    lastname: user.lastname,
+                    email: user.email,
+                    password: user.password,
+                    create_at: user.create_at,
+                    update_at: user.update_at,
+                    is_active: user.is_active,
+                    department: user.department,
                     role: user.role,
+                    phone_number: user.phone_number
                 },
             });
         } else {
