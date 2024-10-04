@@ -119,7 +119,18 @@ export const loginuser = async (req, res) => {
         const result = await new UserService().loginuser(username, hashedPassword);
         if (result.length > 0) {
             const user = result[0]; // สมมุติว่าเราจะใช้ข้อมูลผู้ใช้ตัวแรก
-            const token = jwt.sign({ user_id: user.user_id, role: user.role }, process.env.JWT_KEY, { expiresIn: '1h' });
+            const token = jwt.sign({ user_id: user.user_id,
+                username: user.username,
+                firstname: user.firstname,
+                lastname: user.lastname,
+                email: user.email,
+                password: user.password,
+                create_at: user.create_at,
+                update_at: user.update_at,
+                is_active: user.is_active,
+                department: user.department,
+                role: user.role,
+                phone_number: user.phone_number }, process.env.JWT_KEY, { expiresIn: '1h' });
 
             res.status(200).send({
                 status: 'success',
