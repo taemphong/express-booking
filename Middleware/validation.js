@@ -1,14 +1,32 @@
 import { body } from 'express-validator';
 import { pool } from '../database.js';
+import BookingService from '../meetingroomBooking/meetingroomBooking.service.js';
 
-export const bookingValidationRules = () => { 
+export const bookingValidationRules = () => {
     return [
-        body('user_id').isInt().withMessage('รหัสผู้ใช้ต้องเป็นจำนวนเต็ม'),  
-        body('room_id').isInt().withMessage('รหัสห้องต้องเป็นจำนวนเต็ม'),  
-        body('booking_date').isISO8601().withMessage('วันที่จองต้องเป็นวันที่ที่ถูกต้อง'),  
-        body('start_time').isString().withMessage('เวลาเริ่มต้องเป็นข้อความ'),  
-        body('end_time').isString().withMessage('เวลาสิ้นสุดต้องเป็นข้อความ'),  
-        body('purpose').optional().isString().withMessage('วัตถุประสงค์ต้องเป็นข้อความ')  
+        body('user_id').isInt().withMessage('รหัสผู้ใช้ต้องเป็นจำนวนเต็ม'),
+        body('room_id').isInt().withMessage('รหัสห้องต้องเป็นจำนวนเต็ม'),
+        body('booking_date').isISO8601().withMessage('วันที่จองต้องเป็นวันที่ที่ถูกต้อง'),
+        body('start_time').isString().withMessage('เวลาเริ่มต้องเป็นข้อความ'),
+        body('end_time').isString().withMessage('เวลาสิ้นสุดต้องเป็นข้อความ'),
+        body('purpose').optional().isString().withMessage('วัตถุประสงค์ต้องเป็นข้อความ'),
+        body('booking_date').custom(async (value, { req }) => {
+            const bookingService = new BookingService();
+            const { room_id, start_time, end_time } = req.body;
+
+            // ตรวจสอบการจองที่มีอยู่
+            const isRoomAvailable = await bookingService.checkRoomAvailability(
+                room_id,
+                value,
+                start_time,
+                end_time
+            );
+
+            if (!isRoomAvailable) {
+                throw new Error('มีการจองห้องในวันและเวลาเดียวกันอยู่แล้ว');
+            }
+            return true;
+        }),
     ];
 };
 
