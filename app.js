@@ -22,7 +22,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use((err, req, res, next) => {
-  console.error(err); // แสดงข้อผิดพลาดใน console
   if (err instanceof Error) {
       return res.status(400).json({
           errors: [
