@@ -1,4 +1,5 @@
 import { body } from 'express-validator';
+import { pool } from '../database.js';
 
 export const bookingValidationRules = () => { 
     return [
@@ -68,7 +69,7 @@ export const usersupdateValidationRules = () => {
     return [
         body('username')
             .isString()
-            .withMessage('ชื่อผู้ใช้ใช้ต้องเป็นข้อความและห้ามใช้อักขระพิเศษ')
+            .withMessage('ชื่อผู้ใช้ต้องเป็นข้อความและห้ามใช้อักขระพิเศษ')
             .notEmpty()
             .withMessage('กรุณากรอก Username'),
 
@@ -82,13 +83,36 @@ export const usersupdateValidationRules = () => {
             .isString()
             .withMessage('นามสกุลต้องเป็นข้อความและห้ามใช้อักขระพิเศษ')
             .notEmpty()
-            .withMessage('กรุณากรอก Last name '),
+            .withMessage('กรุณากรอก Last name'),
 
         body('email')
             .isEmail()
             .withMessage('อีเมลต้องเป็นที่อยู่อีเมลที่ถูกต้อง')
             .notEmpty()
-            .withMessage('กรุณากรอก Email '),
+            .withMessage('กรุณากรอก Email')
+            .custom(async (value, { req }) => {
+                const userId = req.params.id; // ส่ง userId ผ่านพารามิเตอร์ของ URL
+                try {
+                    console.log('ตรวจสอบอีเมล:', value, 'UserId:', userId);
+                    
+                    const [emailExists] = await pool.query(
+                        'SELECT * FROM login WHERE email = ? AND user_id != ?',
+                        [value, userId]
+                    );
+            
+                    if (emailExists.length > 0) {
+                        throw new Error('อีเมลนี้ถูกใช้งานแล้ว'); 
+                    }
+                    return true;
+                } catch (error) {
+                    console.error('Error during email check:', error); 
+                    if (error.message === 'อีเมลนี้ถูกใช้งานแล้ว') {
+                        throw new Error('อีเมลนี้ถูกใช้งานแล้ว'); 
+                    } else {
+                        throw new Error('เกิดข้อผิดพลาดในการตรวจสอบอีเมล');
+                    }
+                }
+            }),
 
         body('department')
             .optional()
@@ -98,15 +122,15 @@ export const usersupdateValidationRules = () => {
         body('role')
             .optional()
             .isIn(['user', 'admin'])
-            .withMessage('Role must be either user or admin'),
+            .withMessage('Role ต้องเป็น user หรือ admin'),
 
-            body('phone_number')  
-            .optional()  
-            .isString()  
-            .withMessage('หมายเลขโทรศัพท์ต้องเป็นตัวอักษร') 
-            .isLength({ min: 10, max: 10 })  
-            .withMessage('หมายเลขโทรศัพท์ต้องมีความยาว 10 หลัก')  
-            .isNumeric()  
-            .withMessage('หมายเลขโทรศัพท์ต้องประกอบด้วยตัวเลขเท่านั้น'),  
+        body('phone_number')
+            .optional()
+            .isString()
+            .withMessage('หมายเลขโทรศัพท์ต้องเป็นตัวอักษร')
+            .isLength({ min: 10, max: 10 })
+            .withMessage('หมายเลขโทรศัพท์ต้องมีความยาว 10 หลัก')
+            .isNumeric()
+            .withMessage('หมายเลขโทรศัพท์ต้องประกอบด้วยตัวเลขเท่านั้น'),
     ];
 };
