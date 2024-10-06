@@ -118,7 +118,7 @@ export const loginuser = async (req, res) => {
     try {
         const result = await new UserService().loginuser(username, hashedPassword);
         if (result.length > 0) {
-            const user = result[0]; // สมมุติว่าเราจะใช้ข้อมูลผู้ใช้ตัวแรก
+            const user = result[0]; 
             const token = jwt.sign({ user_id: user.user_id,
                 username: user.username,
                 firstname: user.firstname,
@@ -135,7 +135,7 @@ export const loginuser = async (req, res) => {
             res.status(200).send({
                 status: 'success',
                 code: 1,
-                token, // ส่ง token กลับไป
+                token, // ส่ง token 
                 result: {
                     user_id: user.user_id,
                     username: user.username,

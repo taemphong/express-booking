@@ -102,6 +102,39 @@ export const getBookingsController = async (req, res) => {
     }
 };
 
+// ดึงรายการจองของuser
+export const getUserBookingsController = async (req, res) => {
+    const { user_id } = req.params;
+
+    try {
+        const bookings = await new BookingService().getBookingsByUserId(user_id);
+        
+        if (bookings.length > 0) {
+            res.status(200).send({
+                status: "success",
+                code: 1,
+                message: "User bookings fetched successfully",
+                result: bookings,
+            });
+        } else {
+            res.status(404).send({
+                status: "fail",
+                code: 0,
+                message: "No bookings found for this user",
+                result: "",
+            });
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({
+            status: "fail",
+            code: 0,
+            message: error.message,
+            result: "",
+        });
+    }
+};
+
 //แก้ไขข้อมูล
 export const editBookingController = async (req, res) => {
     const { booking_id } = req.params;

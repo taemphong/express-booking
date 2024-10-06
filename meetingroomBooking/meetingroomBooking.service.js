@@ -41,6 +41,13 @@ export default class BookingService {
         const [rows] = await pool.query(sql);
         return rows;
     }
+    
+    //userดึงข้อมูลกาจองของตัวเอง
+    async getBookingsByUserId(user_id) {
+        const sql = 'SELECT * FROM meeting_room_booking WHERE user_id = ?';
+        const [rows] = await pool.query(sql, [user_id]);
+        return rows;
+    }
 
     // ดึงด้วย id
     async getBookingById(booking_id) {
@@ -62,11 +69,21 @@ export default class BookingService {
 
     // ลบการจอง
     async deleteBooking(booking_id) {
-        const sql = 'DELETE FROM  meeting_room_booking WHERE booking_id = ?'; 
+        const deleteHistorySql = 'DELETE FROM booking_history WHERE booking_id = ?';
+        const deleteBookingSql = 'DELETE FROM meeting_room_booking WHERE booking_id = ?';
+    
         try {
-            const [result] = await pool.query(sql, [booking_id]); 
+            await pool.query('START TRANSACTION');
+            
+            await pool.query(deleteHistorySql, [booking_id]);
+    
+            const [result] = await pool.query(deleteBookingSql, [booking_id]);
+    
+            await pool.query('COMMIT');
+            
             return result;
         } catch (error) {
+            await pool.query('ROLLBACK');
             throw new EvalError('Error deleting booking: ' + error.message);
         }
     }

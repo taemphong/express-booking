@@ -8,6 +8,7 @@ router.post('/postbooking', bookingValidationRules(),meetingroomBookingControlle
 router.get('/getbooking', meetingroomBookingController.getBookingsController);
 router.patch('/editbooking/:booking_id', meetingroomBookingController.editBookingController);
 router.delete('/deletebooking/:booking_id', meetingroomBookingController.deleteBookingController);
+router.get('/getuserbooking/:user_id', meetingroomBookingController.getUserBookingsController);
 
 //  สำหรับ Admin
 router.get('/admin/pending-booking',isAdmin, meetingroomBookingController.getPendingBookings); 
