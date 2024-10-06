@@ -135,6 +135,25 @@ export const getUserBookingsController = async (req, res) => {
     }
 };
 
+//ดึงวันเวลาที่confirmแล้วมาแสดงในปฏิทิน
+export const getConfirmedBookingsController = async (req, res) => {
+    try {
+        const confirmedBookings = await new BookingService().getConfirmedBookings();
+        res.status(200).send({
+            status: "success",
+            code: 1,
+            message: "ดึงข้อมูลการจองที่ได้รับการยืนยันเรียบร้อยแล้ว",
+            result: confirmedBookings,
+        });
+    } catch (error) {
+        res.status(500).send({
+            status: "fail",
+            code: 0,
+            message: error.message,
+        });
+    }
+};
+
 //แก้ไขข้อมูล
 export const editBookingController = async (req, res) => {
     const { booking_id } = req.params;
@@ -280,7 +299,7 @@ export const approveBooking = async (req, res) => {
     const bookingId = req.params.id;
     const bookingService = new BookingService();  
     try {
-        const result = await bookingService.updateBookingStatus(bookingId, 'confrim');
+        const result = await bookingService.updateBookingStatus(bookingId, 'confirm');
         if (result.affectedRows > 0) {
             res.status(200).json({ 
                 status: 'success', 

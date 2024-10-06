@@ -49,6 +49,12 @@ export default class BookingService {
         return rows;
     }
 
+    async getConfirmedBookings() {
+        const sql = 'SELECT room_id, booking_date, start_time, end_time FROM meeting_room_booking WHERE status = "confirm"';
+        const [rows] = await pool.query(sql);
+        return rows;
+    }
+
     // ดึงด้วย id
     async getBookingById(booking_id) {
         const sql = 'SELECT * FROM meeting_room_booking WHERE booking_id = ?';
