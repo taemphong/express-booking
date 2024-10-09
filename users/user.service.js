@@ -68,5 +68,32 @@ async updateUser(id, updatedData) {
     }
 }
 
+async getUserByEmail(email) {
+    const sql = 'SELECT * FROM login WHERE email = ?';
+    const [rows] = await pool.query(sql, [email]);
+    return rows[0];
+}
+
+
+async saveConfirmationCode(userId, confirmationCode, codeExpiry) {
+    await pool.query('UPDATE login SET confirmation_code = ?, code_expiry = ? WHERE user_id = ?', [confirmationCode, codeExpiry, userId]);
+}
+
+
+async clearConfirmationCode(userId) {
+    await pool.query('UPDATE login SET confirmation_code = NULL, code_expiry = NULL WHERE user_id = ?', [userId]);
+}
+
+async updatePassword(user_id, newPassword) {
+    const sql = 'UPDATE login SET password_hash = ? WHERE user_id = ?';
+    await pool.query(sql, [newPassword, user_id]);
+}
+
+async getUserByUsername(username) {
+    const sql = 'SELECT * FROM login WHERE username = ?';
+    const [rows] = await pool.query(sql, [username]);
+    return rows[0]; 
+}
+
 }
 

@@ -152,3 +152,21 @@ export const usersupdateValidationRules = () => {
             .withMessage('หมายเลขโทรศัพท์ต้องประกอบด้วยตัวเลขเท่านั้น'),
     ];
 };
+
+export const resetPasswordValidationRules = () => {
+    return [
+        body('confirmationCode')
+            .notEmpty()
+            .withMessage('กรุณากรอกรหัสยืนยัน'),
+
+        body('id')
+            .isInt()
+            .withMessage('ID ผู้ใช้ต้องเป็นจำนวนเต็ม'),
+
+        body('newPassword')
+            .isLength({ min: 6 })
+            .withMessage('รหัสผ่านใหม่ต้องมีความยาวอย่างน้อย 6 ตัวอักษร')
+            .notEmpty()
+            .withMessage('กรุณากรอกรหัสผ่านใหม่'),
+    ];
+};

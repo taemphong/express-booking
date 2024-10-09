@@ -3,6 +3,8 @@ import md5 from "md5";
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import { validationResult } from 'express-validator';
+import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 
 dotenv.config();
 
@@ -276,5 +278,115 @@ export const updateUserController = async (req, res) => {
             cause: "Error updating user: " + error.message,
             result: "",
         });
+    }
+};
+
+export const forgotPassword = async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        const userService = new UserService();
+        const user = await userService.getUserByEmail(email); // ตรวจสอบว่าผู้ใช้มีอยู่หรือไม่
+        
+        if (!user) {
+            return res.status(404).send({
+                status: 'error',
+                message: 'ไม่พบผู้ใช้',
+            });
+        }
+
+        // สร้างรหัสยืนยัน
+        const confirmationCode = crypto.randomBytes(3).toString('hex'); // รหัสยืนยัน 4 หลัก
+        const codeExpiry = new Date(Date.now() + 15 * 60 * 1000); // กำหนดวันหมดอายุเป็น 15 นาที
+
+        // บันทึกรหัสยืนยันและวันหมดอายุในฐานข้อมูล
+        await userService.saveConfirmationCode(user.user_id, confirmationCode, codeExpiry);
+
+        // ส่งรหัสยืนยันไปยังอีเมลของผู้ใช้
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER, 
+                pass: process.env.EMAIL_PASS,
+            },
+        });
+
+        await transporter.sendMail({
+            to: user.email,
+            subject: 'รหัสยืนยันการเปลี่ยนรหัสผ่าน',
+            html: `<p>รหัสยืนยันของคุณคือ: <strong>${confirmationCode}</strong></p><p>รหัสจะหมดอายุภายใน 15 นาที</p>`,
+        });
+
+        res.status(200).send({
+            status: 'success',
+            message: 'รหัสยืนยันถูกส่งไปยังอีเมลของคุณ',
+        });
+    } catch (error) {
+        res.status(500).send({
+            status: 'error',
+            message: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์',
+            cause: error.message,
+        });
+    }
+};
+
+export const resetPassword = async (req, res) => {
+    const { confirmationCode, id, newPassword } = req.body;
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+        const userService = new UserService();
+        const user = await userService.getUserById(id);
+
+        // ตรวจสอบรหัสยืนยันและวันหมดอายุ
+        if (!user || user.confirmation_code !== confirmationCode || user.code_expiry < new Date()) {
+            return res.status(400).send({
+                status: 'error',
+                message: 'รหัสยืนยันไม่ถูกต้องหรือหมดอายุ',
+            });
+        }
+
+        // แฮชรหัสผ่านใหม่และอัปเดตในฐานข้อมูล
+        const hashedPassword = md5(newPassword);
+        await userService.updatePassword(user.user_id, hashedPassword);
+
+        // ล้างรหัสยืนยันหลังจากใช้แล้ว
+        await userService.clearConfirmationCode(user.user_id);
+
+        res.status(200).send({
+            status: 'success',
+            message: 'รีเซ็ตรหัสผ่านสำเร็จ',
+        });
+    } catch (error) {
+        res.status(500).send({
+            status: 'error',
+            message: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์',
+            cause: error.message,
+        });
+    }
+};
+
+export const getUserByUsername = async (req, res) => {
+    const { username } = req.body; 
+
+    if (!username) {
+        return res.status(400).json({ message: 'กรุณาใส่ username' });
+    }
+
+    try {
+        const userService = new UserService();
+        const user = await userService.getUserByUsername(username);
+        
+        if (!user) {
+            return res.status(404).json({ message: 'ไม่พบผู้ใช้' });
+        }
+
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(500).json({ message: 'เกิดข้อผิดพลาด', error: error.message });
     }
 };
