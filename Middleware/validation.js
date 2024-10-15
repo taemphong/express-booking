@@ -33,20 +33,25 @@ export const bookingValidationRules = () => {
 export const usersValidationRules = () => {
     return [
         body('username')
+            .trim()
             .isString()
-            .withMessage('ชื่อผู้ใช้ใช้ต้องเป็นข้อความและห้ามใช้อักขระพิเศษ')
+            .matches(/^[A-Za-z0-9]+$/) 
+            .withMessage('ชื่อผู้ใช้ต้องเป็นข้อความที่ประกอบด้วยตัวอักษรและตัวเลขเท่านั้น')
             .notEmpty()
             .withMessage('กรุณากรอก Username'),
 
         body('firstname')
-            .isString()
-            .withMessage('ชื่อต้องเป็นข้อความและห้ามใช้อักขระพิเศษ')
+            .trim()
+            .matches(/^[A-Za-zก-ฮ\s\-]+$/)
+            .withMessage('ชื่อต้องเป็นข้อความที่ประกอบด้วยตัวอักษรเท่านั้น')
             .notEmpty()
             .withMessage('กรุณากรอก First name'),
 
         body('lastname')
+            .trim()
             .isString()
-            .withMessage('นามสกุลต้องเป็นข้อความและห้ามใช้อักขระพิเศษ')
+            .matches(/^[A-Za-zก-ฮ\s\-]+$/)
+            .withMessage('นามสกุลต้องเป็นข้อความที่ประกอบด้วยตัวอักษรเท่านั้น')
             .notEmpty()
             .withMessage('กรุณากรอก Last name '),
 
@@ -57,6 +62,8 @@ export const usersValidationRules = () => {
             .withMessage('กรุณากรอก Email '),
 
         body('password')
+            .matches(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@#$%^&*()!,.?])[A-Za-z\d@#$%^&*()!,.?]+$/)
+            .withMessage('รหัสผ่านต้องประกอบด้วยตัวอักษรภาษาอังกฤษอย่างน้อย 1 ตัว, ตัวเลขอย่างน้อย 1 ตัว และอักขระพิเศษอย่างน้อย 1 ตัว')
             .isLength({ min: 6 })
             .withMessage('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร')
             .notEmpty()
@@ -65,7 +72,8 @@ export const usersValidationRules = () => {
         body('department')
             .optional()
             .isString()
-            .withMessage('แผนกต้องเป็นข้อความและห้ามใช้อักขระพิเศษ'),
+            .matches(/^[A-Za-zก-ฮ]+$/)
+            .withMessage('แผนกต้องเป็นข้อความที่ประกอบด้วยตัวอักษรเท่านั้น'),
 
         body('role')
             .optional()
@@ -86,24 +94,29 @@ export const usersValidationRules = () => {
 export const usersupdateValidationRules = () => {
     return [
         body('username')
+            .trim()
             .isString()
-            .withMessage('ชื่อผู้ใช้ต้องเป็นข้อความและห้ามใช้อักขระพิเศษ')
+            .matches(/^[A-Za-z0-9]+$/) // อนุญาตเฉพาะตัวอักษรและตัวเลข
+            .withMessage('ชื่อผู้ใช้ต้องเป็นข้อความที่ประกอบด้วยตัวอักษรและตัวเลขเท่านั้น')
             .notEmpty()
             .withMessage('กรุณากรอก Username'),
 
         body('firstname')
             .isString()
-            .withMessage('ชื่อต้องเป็นข้อความและห้ามใช้อักขระพิเศษ')
+            .matches(/^[A-Za-zก-ฮ\s\-]+$/) // ตัวอักษรภาษาไทยหรืออังกฤษ
+            .withMessage('ชื่อต้องเป็นข้อความที่ประกอบด้วยตัวอักษรเท่านั้น')
             .notEmpty()
             .withMessage('กรุณากรอก First name'),
 
         body('lastname')
             .isString()
-            .withMessage('นามสกุลต้องเป็นข้อความและห้ามใช้อักขระพิเศษ')
+            .matches(/^[A-Za-zก-ฮ\s\-]+$/)
+            .withMessage('นามสกุลต้องเป็นข้อความที่ประกอบด้วยตัวอักษรเท่านั้น')
             .notEmpty()
             .withMessage('กรุณากรอก Last name'),
 
         body('email')
+            .trim()
             .isEmail()
             .withMessage('อีเมลต้องเป็นที่อยู่อีเมลที่ถูกต้อง')
             .notEmpty()
@@ -135,7 +148,8 @@ export const usersupdateValidationRules = () => {
         body('department')
             .optional()
             .isString()
-            .withMessage('แผนกต้องเป็นข้อความและห้ามใช้อักขระพิเศษ'),
+            .matches(/^[A-Za-zก-ฮ]+$/)
+            .withMessage('นามสกุลต้องเป็นข้อความที่ประกอบด้วยตัวอักษรเท่านั้น'),
 
         body('role')
             .optional()
@@ -164,9 +178,11 @@ export const resetPasswordValidationRules = () => {
             .withMessage('ID ผู้ใช้ต้องเป็นจำนวนเต็ม'),
 
         body('newPassword')
-            .isLength({ min: 6 })
-            .withMessage('รหัสผ่านใหม่ต้องมีความยาวอย่างน้อย 6 ตัวอักษร')
-            .notEmpty()
-            .withMessage('กรุณากรอกรหัสผ่านใหม่'),
+        .matches(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@#$%^&*()!,.?])[A-Za-z\d@#$%^&*()!,.?]+$/)
+        .withMessage('รหัสผ่านต้องประกอบด้วยตัวอักษรภาษาอังกฤษอย่างน้อย 1 ตัว, ตัวเลขอย่างน้อย 1 ตัว และอักขระพิเศษอย่างน้อย 1 ตัว')
+        .isLength({ min: 6 })
+        .withMessage('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร')
+        .notEmpty()
+        .withMessage('กรุณากรอก Password is required'),
     ];
 };

@@ -1,6 +1,9 @@
 import BookingService from './meetingroomBooking.service.js';
 import { sendBookingNotification } from '../notification/notification.service.js';
 import { validationResult } from 'express-validator';
+import UserService from '../users/user.service.js';
+import MeetingRoomService from '../meetingroom/meetingroom.service.js';
+import nodemailer from 'nodemailer';
 
 //จองห้องตรวจสอบว่าห้องว่างมั้ยจะมีการส่งเมลให้กับ admin เมื่อมีการจองห้องและเก็บข้อมูลประวัติการจอง
 export const addBookingController = async (req, res) => {
@@ -297,49 +300,190 @@ export const getPendingBookings = async (req, res) => {
 // อนุมัติการจองอัปเดตสถานะ
 export const approveBooking = async (req, res) => {
     const bookingId = req.params.id;
-    const bookingService = new BookingService();  
+    const bookingService = new BookingService();
+    const userService = new UserService();
+    const meetingRoomService = new MeetingRoomService(); // สร้าง MeetingRoomService
+
     try {
+        // อัปเดตสถานะการจองเป็น 'confirm'
         const result = await bookingService.updateBookingStatus(bookingId, 'confirm');
         if (result.affectedRows > 0) {
-            res.status(200).json({ 
-                status: 'success', 
-                message: 'Booking approved' 
+            // ดึงข้อมูลการจอง
+            const booking = await bookingService.getBookingById(bookingId);
+            if (!booking || !booking.user_id || !booking.room_id) {
+                return res.status(404).json({
+                    status: 'fail',
+                    message: 'ไม่พบการจองนี้หรือไม่พบผู้ใช้หรือห้องประชุม',
+                });
+            }
+
+            // ดึงข้อมูลผู้ใช้จาก user_id
+            const user = await userService.getUserById(booking.user_id);
+            if (!user || !user.email) {
+                return res.status(404).json({
+                    status: 'fail',
+                    message: 'ไม่พบผู้ใช้หรือไม่พบอีเมลของผู้ใช้',
+                });
+            }
+
+            // ดึงข้อมูลห้องประชุมจาก room_id
+            const meetingRoom = await meetingRoomService.getMeetingRoomById(booking.room_id);
+            if (!meetingRoom || !meetingRoom.room_name) {
+                return res.status(404).json({
+                    status: 'fail',
+                    message: 'ไม่พบห้องประชุมหรือชื่อห้องประชุม',
+                });
+            }
+
+            // การตั้งค่า Nodemailer
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS,
+                },
+            });
+
+            const emailHtml = `
+            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: black;">
+                <p>เรียนคุณ <strong>${user.firstname}</strong>,</p>
+
+                <p>เรามีความยินดีที่จะแจ้งให้ท่านทราบว่า การจองห้องประชุม <strong>"${meetingRoom.room_name}"</strong> ของท่านได้รับการอนุมัติเรียบร้อยแล้ว</p>
+                
+                <p>รายละเอียดการจอง:</p>
+                <ul style="list-style-type: none; padding: 0;">
+                    <li style="margin-bottom: 5px;">- <strong>เวลา:</strong> ${booking.start_time} ถึง ${booking.end_time}</li>
+                    <li style="margin-bottom: 5px;">- <strong>หมายเลขการจอง:</strong> ${bookingId}</li>
+                </ul>
+                
+                <p>หากท่านมีคำถามเพิ่มเติมหรือต้องการเปลี่ยนแปลงการจอง กรุณาติดต่อเจ้าหน้าที่ที่เกี่ยวข้อง</p>
+                
+                <p style="margin-top: 20px;">ขอแสดงความนับถือ,</p>
+                <p>ทีมงานฝ่ายจองห้องประชุม</p>
+            </div>
+        `;
+
+        // การส่งอีเมล
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: user.email,
+            subject: 'การจองห้องได้รับการอนุมัติ',
+            html: emailHtml,
+        };
+
+
+            // ส่งอีเมล
+            await transporter.sendMail(mailOptions);
+
+            // ตอบกลับ
+            res.status(200).json({
+                status: 'success',
+                message: 'การจองได้รับการอนุมัติและแจ้งเตือนผู้ใช้เรียบร้อยแล้ว',
             });
         } else {
-            res.status(400).json({ 
-                status: 'fail', 
-                message: 'Booking not found' 
+            res.status(400).json({
+                status: 'fail',
+                message: 'ไม่พบการจองนี้',
             });
         }
     } catch (error) {
-        res.status(500).json({ 
-            status: 'fail', 
-            message: error.message 
+        res.status(500).json({
+            status: 'fail',
+            message: error.message,
         });
     }
 };
 
+
 // ปฏิเสธการจองอัปเดตสถานะ
 export const rejectBooking = async (req, res) => {
     const bookingId = req.params.id;
-    const bookingService = new BookingService();  
+    const bookingService = new BookingService();
+    const userService = new UserService();
+    const meetingRoomService = new MeetingRoomService(); // สร้าง MeetingRoomService
+
     try {
         const result = await bookingService.updateBookingStatus(bookingId, 'cancel');
         if (result.affectedRows > 0) {
-            res.status(200).json({ 
-                status: 'success', 
-                message: 'Booking rejected' 
+            // ดึงข้อมูลการจอง
+            const booking = await bookingService.getBookingById(bookingId);
+            if (!booking || !booking.user_id || !booking.room_id) { // ตรวจสอบ booking, user_id, room_id ไม่ใช่ค่า null
+                return res.status(404).json({
+                    status: 'fail',
+                    message: 'ไม่พบการจองนี้หรือไม่พบผู้ใช้หรือห้องประชุม',
+                });
+            }
+
+            // ดึงข้อมูลผู้ใช้จาก user_id
+            const user = await userService.getUserById(booking.user_id);
+            if (!user || !user.email) {
+                return res.status(404).json({
+                    status: 'fail',
+                    message: 'ไม่พบผู้ใช้หรือไม่พบอีเมลของผู้ใช้',
+                });
+            }
+
+            // ดึงข้อมูลห้องประชุมจาก room_id
+            const meetingRoom = await meetingRoomService.getMeetingRoomById(booking.room_id);
+            if (!meetingRoom || !meetingRoom.room_name) {
+                return res.status(404).json({
+                    status: 'fail',
+                    message: 'ไม่พบห้องประชุมหรือชื่อห้องประชุม',
+                });
+            }
+
+            // การตั้งค่า Nodemailer
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS,
+                },
+            });
+
+            const emailHtmlcancel = ` <div style="font-family: Arial, sans-serif; line-height: 1.6; color: black;">
+            <p>เรียนคุณ <strong>${user.firstname}</strong>,</p>
+
+            <p>เรามีความเสียใจที่จะแจ้งให้ท่านทราบว่า การจองห้องประชุม <strong>"${meetingRoom.room_name}"</strong> ของท่านได้ถูกปฏิเสธ</p>
+            
+            <p>รายละเอียดการจอง:</p>
+            <ul style="list-style-type: none; padding: 0;">
+                <li style="margin-bottom: 5px;">- <strong>เวลา:</strong> ${booking.start_time} ถึง ${booking.end_time}</li>
+                <li style="margin-bottom: 5px;">- <strong>หมายเลขการจอง:</strong> ${bookingId}</li>
+            </ul>
+            
+            <p>หากท่านมีคำถามเพิ่มเติมหรือต้องการเปลี่ยนแปลงการจอง กรุณาติดต่อเจ้าหน้าที่ที่เกี่ยวข้อง</p>
+            
+            <p style="margin-top: 20px;">ขอแสดงความนับถือ,</p>
+            <p>ทีมงานฝ่ายจองห้องประชุม</p>
+            </div> `
+
+            // เนื้อหาอีเมล
+            const mailOptions = {
+                from: process.env.EMAIL_USER,
+                to: user.email,
+                subject: 'การจองห้องถูกปฏิเสธ',
+                text: emailHtmlcancel,
+            };
+
+            // ส่งอีเมล
+            await transporter.sendMail(mailOptions);
+
+            // ตอบกลับ
+            res.status(200).json({
+                status: 'success',
+                message: 'Booking rejected and user notified',
             });
         } else {
-            res.status(400).json({ 
-                status: 'fail', 
-                message: 'Booking not found' 
+            res.status(400).json({
+                status: 'fail',
+                message: 'Booking not found',
             });
         }
     } catch (error) {
-        res.status(500).json({ 
-            status: 'fail', 
-            message: error.message 
+        res.status(500).json({
+            status: 'fail',
+            message: error.message,
         });
     }
 };
