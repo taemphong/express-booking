@@ -5,7 +5,7 @@ import { bookingValidationRules } from "../Middleware/validation.js";
 const router = Router();
 
 router.post('/postbooking', bookingValidationRules(),meetingroomBookingController.addBookingController);
-router.get('/getbooking', meetingroomBookingController.getBookingsController);
+router.get('/getbooking', isAdmin,meetingroomBookingController.getBookingsController);
 router.patch('/editbooking/:booking_id', meetingroomBookingController.editBookingController);
 router.delete('/deletebooking/:booking_id', meetingroomBookingController.deleteBookingController);
 router.get('/getuserbooking/:user_id', meetingroomBookingController.getUserBookingsController);

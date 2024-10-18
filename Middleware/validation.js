@@ -1,6 +1,7 @@
 import { body } from 'express-validator';
 import { pool } from '../database.js';
 import BookingService from '../meetingroomBooking/meetingroomBooking.service.js';
+import UserService from '../users/user.service.js';
 
 export const bookingValidationRules = () => {
     return [
@@ -33,12 +34,20 @@ export const bookingValidationRules = () => {
 export const usersValidationRules = () => {
     return [
         body('username')
-            .trim()
-            .isString()
-            .matches(/^[A-Za-z0-9]+$/) 
-            .withMessage('ชื่อผู้ใช้ต้องเป็นข้อความที่ประกอบด้วยตัวอักษรและตัวเลขเท่านั้น')
-            .notEmpty()
-            .withMessage('กรุณากรอก Username'),
+        .trim()
+        .isString()
+        .matches(/^[A-Za-z0-9]+$/) // อนุญาตเฉพาะตัวอักษรและตัวเลข
+        .withMessage('ชื่อผู้ใช้ต้องเป็นข้อความที่ประกอบด้วยตัวอักษรและตัวเลขเท่านั้น')
+        .notEmpty()
+        .withMessage('กรุณากรอก Username')
+        .custom(async (value) => {
+            const userService = new UserService();
+            const user = await userService.getUserByUsername(value);
+            if (user) {
+                throw new Error('ชื่อผู้ใช้นี้ถูกใช้งานแล้ว'); 
+            }
+            return true; 
+        }),
 
         body('firstname')
             .trim()
@@ -55,11 +64,19 @@ export const usersValidationRules = () => {
             .notEmpty()
             .withMessage('กรุณากรอก Last name '),
 
-        body('email')
+            body('email')
             .isEmail()
             .withMessage('อีเมลต้องเป็นที่อยู่อีเมลที่ถูกต้อง')
             .notEmpty()
-            .withMessage('กรุณากรอก Email '),
+            .withMessage('กรุณากรอก Email')
+            .custom(async (value) => {
+                const userService = new UserService();
+                const user = await userService.getUserByEmail(value);
+                if (user) {
+                    throw new Error('อีเมลนี้ถูกใช้งานแล้ว'); 
+                }
+                return true; 
+            }),
 
         body('password')
             .matches(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@#$%^&*()!,.?])[A-Za-z\d@#$%^&*()!,.?]+$/)
@@ -80,26 +97,42 @@ export const usersValidationRules = () => {
             .isIn(['user', 'admin'])
             .withMessage('Role must be either user or admin'),
 
-            body('phone_number')  
+            body('phone_number')
             .optional()  
             .isString()  
             .withMessage('หมายเลขโทรศัพท์ต้องเป็นตัวอักษร') 
             .isLength({ min: 10, max: 10 })  
             .withMessage('หมายเลขโทรศัพท์ต้องมีความยาว 10 หลัก')  
             .isNumeric()  
-            .withMessage('หมายเลขโทรศัพท์ต้องประกอบด้วยตัวเลขเท่านั้น'),  
+            .withMessage('หมายเลขโทรศัพท์ต้องประกอบด้วยตัวเลขเท่านั้น')
+            .custom(async (value) => {
+                const userService = new UserService();
+                const user = await userService.getUserByPhoneNumber(value);
+                if (user) {
+                    throw new Error('หมายเลขโทรศัพท์นี้ถูกใช้งานแล้ว'); 
+                }
+                return true; 
+            }),
     ];
 };
 
 export const usersupdateValidationRules = () => {
     return [
         body('username')
-            .trim()
-            .isString()
-            .matches(/^[A-Za-z0-9]+$/) // อนุญาตเฉพาะตัวอักษรและตัวเลข
-            .withMessage('ชื่อผู้ใช้ต้องเป็นข้อความที่ประกอบด้วยตัวอักษรและตัวเลขเท่านั้น')
-            .notEmpty()
-            .withMessage('กรุณากรอก Username'),
+        .trim()
+        .isString()
+        .matches(/^[A-Za-z0-9]+$/) // อนุญาตเฉพาะตัวอักษรและตัวเลข
+        .withMessage('ชื่อผู้ใช้ต้องเป็นข้อความที่ประกอบด้วยตัวอักษรและตัวเลขเท่านั้น')
+        .notEmpty()
+        .withMessage('กรุณากรอก Username')
+        .custom(async (value) => {
+            const userService = new UserService();
+            const user = await userService.getUserByUsername(value);
+            if (user) {
+                throw new Error('ชื่อผู้ใช้นี้ถูกใช้งานแล้ว'); 
+            }
+            return true; 
+        }),
 
         body('firstname')
             .isString()
@@ -156,14 +189,22 @@ export const usersupdateValidationRules = () => {
             .isIn(['user', 'admin'])
             .withMessage('Role ต้องเป็น user หรือ admin'),
 
-        body('phone_number')
-            .optional()
-            .isString()
-            .withMessage('หมายเลขโทรศัพท์ต้องเป็นตัวอักษร')
-            .isLength({ min: 10, max: 10 })
-            .withMessage('หมายเลขโทรศัพท์ต้องมีความยาว 10 หลัก')
-            .isNumeric()
-            .withMessage('หมายเลขโทรศัพท์ต้องประกอบด้วยตัวเลขเท่านั้น'),
+            body('phone_number')
+            .optional()  
+            .isString()  
+            .withMessage('หมายเลขโทรศัพท์ต้องเป็นตัวอักษร') 
+            .isLength({ min: 10, max: 10 })  
+            .withMessage('หมายเลขโทรศัพท์ต้องมีความยาว 10 หลัก')  
+            .isNumeric()  
+            .withMessage('หมายเลขโทรศัพท์ต้องประกอบด้วยตัวเลขเท่านั้น')
+            .custom(async (value) => {
+                const userService = new UserService();
+                const user = await userService.getUserByPhoneNumber(value);
+                if (user) {
+                    throw new Error('หมายเลขโทรศัพท์นี้ถูกใช้งานแล้ว'); 
+                }
+                return true; 
+            }),
     ];
 };
 

@@ -33,5 +33,30 @@ export default class MeetingRoomService {
         return result;
     }
 
+    async insertMeetingRoomDetail(detail) {
+        const sql = `INSERT INTO meeting_room_details SET ?`;
+        const [result] = await pool.query(sql, detail);
+        return result;
+    }
+    
+    async getMeetingRoomDetailsByRoomId(roomId) {
+        const sql = `SELECT * FROM meeting_room_details WHERE room_id = ?`;
+        const [result] = await pool.query(sql, [roomId]);
+        return result;
+    }
+
+    async updateMeetingRoomDetail(detailId, detail) {
+        const sql = `UPDATE meeting_room_details SET ? WHERE detail_id = ?`;
+        const [result] = await pool.query(sql, [detail, detailId]);
+        return result;
+    }
+
+    async getMeetingRoomDetailsByDetailId(roomId) {
+        const sql = `SELECT * FROM meeting_room_details WHERE detail_id = ?`;
+        const [result] = await pool.query(sql, [roomId]);
+        return result;
+    }
+
+
     
 }

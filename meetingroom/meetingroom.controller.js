@@ -165,3 +165,166 @@ export const deleteMeetingRoomController = async (req, res) => {
         });
     }
 };
+
+export const addMeetingRoomDetailsController = async (req, res) => {
+    const roomId = req.params.room_id; 
+
+    const details = req.files.map(file => ({
+        room_id: roomId,
+        image_url: file.path,
+        description: req.body.description || null, 
+    }));
+
+    try {
+        for (const detail of details) {
+            await meetingRoomService.insertMeetingRoomDetail(detail);
+        }
+
+        res.status(201).send({
+            status: "success",
+            code: 1,
+            message: "Meeting room details added successfully",
+            cause: "",
+            result: details,
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({
+            status: "fail",
+            code: 0,
+            message: error.message,
+            cause: "",
+            result: "",
+        });
+    }
+};
+
+export const getMeetingRoomDetailsByRoomIdController = async (req, res) => {
+    const roomId = req.params.room_id; 
+
+    try {
+        const details = await meetingRoomService.getMeetingRoomDetailsByRoomId(roomId);
+
+        if (details.length === 0) {
+            return res.status(404).send({
+                status: "fail",
+                code: 0,
+                message: "ไม่พบรายละเอียดสำหรับห้องประชุมนี้",
+                cause: "",
+                result: [],
+            });
+        }
+
+        res.status(200).send({
+            status: "success",
+            code: 1,
+            message: "ดึงรายละเอียดห้องประชุมสำเร็จ",
+            cause: "",
+            result: details,
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({
+            status: "fail",
+            code: 0,
+            message: error.message,
+            cause: "",
+            result: "",
+        });
+    }
+};
+
+export const getMeetingRoomDetailsByDetailIdController = async (req, res) => {
+    const detailId = req.params.detail_id; 
+
+    try {
+        const details = await meetingRoomService.getMeetingRoomDetailsByDetailId(detailId);
+
+        if (!details.length) {
+            return res.status(404).send({
+                status: "fail",
+                code: 0,
+                message: "ไม่พบรายละเอียดห้องประชุมที่ต้องการ",
+                cause: "",
+                result: "",
+            });
+        }
+
+        res.status(200).send({
+            status: "success",
+            code: 1,
+            message: "ดึงรายละเอียดห้องประชุมเรียบร้อยแล้ว",
+            cause: "",
+            result: details[0], 
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({
+            status: "fail",
+            code: 0,
+            message: error.message,
+            cause: "",
+            result: "",
+        });
+    }
+};
+
+export const updateMeetingRoomDetailsController = async (req, res) => {
+    const detailId = req.params.detail_id; 
+    const { description } = req.body; 
+    const newImage = req.file; 
+
+    try {
+      
+        const currentDetail = await meetingRoomService.getMeetingRoomDetailsByDetailId(detailId);
+
+        if (!currentDetail.length) {
+            return res.status(404).send({
+                status: "fail",
+                code: 0,
+                message: "ไม่พบรายละเอียดห้องประชุมที่ต้องการอัปเดต",
+                cause: "",
+                result: "",
+            });
+        }
+
+        
+        const updateData = {
+            image_url: newImage ? newImage.path : currentDetail[0].image_url, 
+            description: description !== undefined ? description : currentDetail[0].description, 
+        };
+
+        const updatedDetail = await meetingRoomService.updateMeetingRoomDetail(detailId, updateData);
+
+        if (updatedDetail.affectedRows === 0) {
+            return res.status(404).send({
+                status: "fail",
+                code: 0,
+                message: "ไม่สามารถอัปเดตรายละเอียดห้องประชุมได้",
+                cause: "",
+                result: "",
+            });
+        }
+
+        res.status(200).send({
+            status: "success",
+            code: 1,
+            message: "รายละเอียดห้องประชุมถูกอัปเดตเรียบร้อยแล้ว",
+            cause: "",
+            result: {
+                detailId,
+                image_url: updateData.image_url,
+                description: updateData.description,
+            },
+        });
+    } catch (error) {
+        console.log("Error during update:", error);
+        res.status(500).send({
+            status: "fail",
+            code: 0,
+            message: error.message,
+            cause: "",
+            result: "",
+        });
+    }
+};

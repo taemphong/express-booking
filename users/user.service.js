@@ -36,16 +36,20 @@ async checkUserExists(username) {
 
 async deleteUser(id) {
     const deleteBookingsSQL = 'DELETE FROM meeting_room_booking WHERE user_id = ?';
+    const deleteBookingHistorySQL = 'DELETE FROM booking_history WHERE booking_id IN (SELECT booking_id FROM meeting_room_booking WHERE user_id = ?)';
     const deleteUserSQL = 'DELETE FROM login WHERE user_id = ?';
     
     const connection = await pool.getConnection(); 
     try {
         await connection.beginTransaction(); 
 
-       
+        // ลบ booking history ที่เกี่ยวข้องกับผู้ใช้
+        await connection.query(deleteBookingHistorySQL, [id]);
+
+        // ลบการจองที่เกี่ยวข้อง
         await connection.query(deleteBookingsSQL, [id]);
 
-        
+        // ลบผู้ใช้
         const [result] = await connection.query(deleteUserSQL, [id]);
 
         await connection.commit(); 
@@ -57,6 +61,7 @@ async deleteUser(id) {
         connection.release(); 
     }
 }
+
 
 async updateUser(id, updatedData) {
     const sql = 'UPDATE login SET ? WHERE user_id = ?';
@@ -92,6 +97,12 @@ async updatePassword(user_id, newPassword) {
 async getUserByUsername(username) {
     const sql = 'SELECT * FROM login WHERE username = ?';
     const [rows] = await pool.query(sql, [username]);
+    return rows[0]; 
+}
+
+async getUserByPhoneNumber(phoneNumber) {
+    const sql = 'SELECT * FROM login WHERE phone_number = ?';
+    const [rows] = await pool.query(sql, [phoneNumber]);
     return rows[0]; 
 }
 

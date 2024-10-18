@@ -286,7 +286,7 @@ export const forgotPassword = async (req, res) => {
 
     try {
         const userService = new UserService();
-        const user = await userService.getUserByEmail(email); // ตรวจสอบว่าผู้ใช้มีอยู่หรือไม่
+        const user = await userService.getUserByEmail(email); 
         
         if (!user) {
             return res.status(404).send({
@@ -296,7 +296,7 @@ export const forgotPassword = async (req, res) => {
         }
 
         // สร้างรหัสยืนยัน
-        const confirmationCode = crypto.randomBytes(3).toString('hex'); // รหัสยืนยัน 4 หลัก
+        const confirmationCode = crypto.randomBytes(3).toString('hex'); 
         const codeExpiry = new Date(Date.now() + 15 * 60 * 1000); // กำหนดวันหมดอายุเป็น 15 นาที
 
         // บันทึกรหัสยืนยันและวันหมดอายุในฐานข้อมูล
@@ -314,7 +314,15 @@ export const forgotPassword = async (req, res) => {
         await transporter.sendMail({
             to: user.email,
             subject: 'รหัสยืนยันการเปลี่ยนรหัสผ่าน',
-            html: `<p>รหัสยืนยันของคุณคือ: <strong>${confirmationCode}</strong></p><p>รหัสจะหมดอายุภายใน 15 นาที</p>`,
+            html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #333;">รหัสยืนยันการเปลี่ยนรหัสผ่าน</h2>
+                <p style="font-size: 16px;">รหัสยืนยันของคุณคือ:</p>
+                <p style="font-size: 32px; font-weight: bold; color: #007bff; background-color: #f8f9fa; padding: 10px; text-align: center; border-radius: 5px;">${confirmationCode}</p>
+                <p style="font-size: 14px; color: #666;">รหัสนี้จะหมดอายุภายใน 15 นาที</p>
+                <p style="font-size: 14px;">หากคุณไม่ได้ร้องขอการเปลี่ยนรหัสผ่าน กรุณาติดต่อเจ้าหน้าที่ทันที</p>
+            </div>
+        `,
         });
 
         res.status(200).send({

@@ -20,6 +20,8 @@ app.use(express.urlencoded({ extended: true }));
 
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploadDetail', express.static(path.join(__dirname, 'uploadDetail')));
+
 
 app.use((err, req, res, next) => {
   if (err instanceof Error) {
