@@ -14,4 +14,5 @@ const storage = multer.diskStorage({
 const uploaddetail = multer({ 
     storage: storage 
 }).single('uploadDetail'); 
+
 export default uploaddetail;
