@@ -297,7 +297,7 @@ export const forgotPassword = async (req, res) => {
 
         // ตรงนี้แสดงข้อมูลผู้ใช้ของemailนี้นะ
         const userInfo = {
-            userId: user.user_id,
+            user_id: user.user_id,
             firstname: user.firstname,
             lastname: user.lastname,
             username: user.username,
