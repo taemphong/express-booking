@@ -295,7 +295,7 @@ export const forgotPassword = async (req, res) => {
             });
         }
 
-        // ตรงนี้แสดงข้อมูลผู้ใช้ของemailนี้นะ
+        //แสดงข้อมูลผู้ใช้ของemail
         const userInfo = {
             user_id: user.user_id,
             firstname: user.firstname,
@@ -409,5 +409,39 @@ export const getUserByUsername = async (req, res) => {
         res.status(200).json(user);
     } catch (error) {
         res.status(500).json({ message: 'เกิดข้อผิดพลาด', error: error.message });
+    }
+};
+
+export const getUserByEmailController = async (req, res) => {
+    const { email } = req.body; // ดึงอีเมลจาก body ของ request
+
+    // ตรวจสอบความถูกต้องของข้อมูล
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+        const userService = new UserService(); // สร้าง instance ของ UserService
+        const user = await userService.getUserByEmail(email); // เรียกใช้งานฟังก์ชัน getUserByEmail
+
+        if (!user) {
+            return res.status(404).send({
+                status: 'error',
+                message: 'ไม่พบผู้ใช้',
+            });
+        }
+
+       
+        res.status(200).send({
+            status: 'success',
+            user, 
+        });
+    } catch (error) {
+        res.status(500).send({
+            status: 'error',
+            message: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์',
+            cause: error.message,
+        });
     }
 };

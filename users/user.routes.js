@@ -15,5 +15,6 @@ router.patch("/updateusers/:id", usersupdateValidationRules(),userController.upd
 router.post("/forgot-password", userController.forgotPassword);
 router.post("/reset-password", resetPasswordValidationRules(),userController.resetPassword);
 router.get("/getbyuser", userController.getUserByUsername);
+router.get("/getbyemail", userController.getUserByEmailController);
 
 export default router;
