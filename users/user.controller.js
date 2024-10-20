@@ -295,6 +295,16 @@ export const forgotPassword = async (req, res) => {
             });
         }
 
+        // ตรงนี้แสดงข้อมูลผู้ใช้ของemailนี้นะ
+        const userInfo = {
+            userId: user.user_id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            department: user.department,
+            phoneNumber: user.phone_number,
+        };
+
         // สร้างรหัสยืนยัน
         const confirmationCode = crypto.randomBytes(3).toString('hex'); 
         const codeExpiry = new Date(Date.now() + 15 * 60 * 1000); // กำหนดวันหมดอายุเป็น 15 นาที
@@ -328,6 +338,7 @@ export const forgotPassword = async (req, res) => {
         res.status(200).send({
             status: 'success',
             message: 'รหัสยืนยันถูกส่งไปยังอีเมลของคุณ',
+            userInfo, 
         });
     } catch (error) {
         res.status(500).send({

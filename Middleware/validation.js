@@ -197,14 +197,6 @@ export const usersupdateValidationRules = () => {
             .withMessage('หมายเลขโทรศัพท์ต้องมีความยาว 10 หลัก')  
             .isNumeric()  
             .withMessage('หมายเลขโทรศัพท์ต้องประกอบด้วยตัวเลขเท่านั้น')
-            .custom(async (value) => {
-                const userService = new UserService();
-                const user = await userService.getUserByPhoneNumber(value);
-                if (user) {
-                    throw new Error('หมายเลขโทรศัพท์นี้ถูกใช้งานแล้ว'); 
-                }
-                return true; 
-            }),
     ];
 };
 
