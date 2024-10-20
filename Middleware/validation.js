@@ -206,9 +206,6 @@ export const resetPasswordValidationRules = () => {
             .notEmpty()
             .withMessage('กรุณากรอกรหัสยืนยัน'),
 
-        body('id')
-            .isInt()
-            .withMessage('ID ผู้ใช้ต้องเป็นจำนวนเต็ม'),
 
         body('newPassword')
         .matches(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@#$%^&*()!,.?])[A-Za-z\d@#$%^&*()!,.?]+$/)

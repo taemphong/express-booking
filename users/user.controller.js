@@ -352,7 +352,7 @@ export const forgotPassword = async (req, res) => {
 };
 
 export const resetPassword = async (req, res) => {
-    const { confirmationCode, id, newPassword } = req.body;
+    const { confirmationCode, email, newPassword } = req.body;
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -361,7 +361,7 @@ export const resetPassword = async (req, res) => {
 
     try {
         const userService = new UserService();
-        const user = await userService.getUserById(id);
+        const user = await userService.getUserByEmail(email);
 
         // ตรวจสอบรหัสยืนยันและวันหมดอายุ
         if (!user || user.confirmation_code !== confirmationCode || user.code_expiry < new Date()) {
