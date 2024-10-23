@@ -450,3 +450,74 @@ export const getDescriptionByRoomIdController = async (req, res) => {
         });
     }
 };
+
+export const deleteMeetingRoomDetailsByRoomIdController = async (req, res) => {
+    const roomId = req.params.room_id;
+
+    try {
+        // เรียกใช้บริการเพื่อลบรายละเอียดห้องประชุมตาม room_id
+        const result = await meetingRoomService.deleteMeetingRoomDetailsByRoomId(roomId);
+
+        if (result.affectedRows > 0) {
+            res.status(200).send({
+                status: "success",
+                code: 1,
+                message: "ลบรายละเอียดห้องประชุมเรียบร้อยแล้ว",
+                cause: "",
+                result: result,
+            });
+        } else {
+            res.status(404).send({
+                status: "fail",
+                code: 0,
+                message: "ไม่พบรายละเอียดห้องประชุมตาม room_id ที่กำหนด",
+                cause: "",
+                result: "",
+            });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({
+            status: "fail",
+            code: 0,
+            message: error.message,
+            cause: "",
+            result: "",
+        });
+    }
+};
+
+export const deleteMeetingRoomDetailsByDetailIdController = async (req, res) => {
+    const detail_id = req.params.detail_id;
+
+    try {
+        const result = await meetingRoomService.deleteMeetingRoomDetailsBydetailId(detail_id);
+
+        if (result.affectedRows > 0) {
+            res.status(200).send({
+                status: "success",
+                code: 1,
+                message: "ลบรายละเอียดห้องประชุมเรียบร้อยแล้ว",
+                cause: "",
+                result: result,
+            });
+        } else {
+            res.status(404).send({
+                status: "fail",
+                code: 0,
+                message: "ไม่พบรายละเอียดห้องประชุมตาม detail_id ที่กำหนด",
+                cause: "",
+                result: "",
+            });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({
+            status: "fail",
+            code: 0,
+            message: error.message,
+            cause: "",
+            result: "",
+        });
+    }
+};

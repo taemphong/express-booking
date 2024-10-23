@@ -82,5 +82,18 @@ export default class MeetingRoomService {
         return result;
     }
     
+    async deleteMeetingRoomDetailsByRoomId(room_id){
+        const sql = `DELETE FROM meeting_room_details WHERE room_id = ?`;
+        const [result] = await pool.query(sql,[room_id]);
+        return result;
+
+    }
+
+    async deleteMeetingRoomDetailsBydetailId(room_id){
+        const sql = `DELETE FROM meeting_room_details WHERE detail_id = ?`;
+        const [result] = await pool.query(sql,[room_id]);
+        return result;
+
+    }
     
 }
