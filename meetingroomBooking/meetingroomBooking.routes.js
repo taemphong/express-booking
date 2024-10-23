@@ -6,7 +6,6 @@ const router = Router();
 
 router.post('/postbooking', bookingValidationRules(),meetingroomBookingController.addBookingController);
 router.get('/getbooking', isAdmin,meetingroomBookingController.getBookingsController);
-router.patch('/editbooking/:booking_id', meetingroomBookingController.editBookingController);
 router.delete('/deletebooking/:booking_id', meetingroomBookingController.deleteBookingController);
 router.get('/getuserbooking/:user_id', meetingroomBookingController.getUserBookingsController);
 router.get('/get-confirmed-booking', meetingroomBookingController.getConfirmedBookingsController);
@@ -15,5 +14,4 @@ router.get('/get-confirmed-booking', meetingroomBookingController.getConfirmedBo
 router.get('/admin/pending-booking',isAdmin, meetingroomBookingController.getPendingBookings); 
 router.patch('/admin/confrim-booking/:id',isAdmin, meetingroomBookingController.approveBooking); 
 router.patch('/admin/cancel-booking/:id', isAdmin,meetingroomBookingController.rejectBooking); 
-
 export default router; 

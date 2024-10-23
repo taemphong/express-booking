@@ -56,7 +56,31 @@ export default class MeetingRoomService {
         const [result] = await pool.query(sql, [roomId]);
         return result;
     }
+    
+    async addDescription(room_id, description_text) {
+        const sql = `INSERT INTO description (room_id, description_text) VALUES (?, ?)`;
+        const [result] = await pool.query(sql, [room_id, description_text]);
+        return result;
+    }
 
+    async updateDescriptionByRoom(room_id, updatedData) {
+        const sql = `UPDATE description SET ? WHERE room_id = ?`;
+        const [result] = await pool.query(sql, [updatedData, room_id]);
+        return result;
+    }
+    
+    
+    async getDescriptionById(description_id) {
+        const sql = `SELECT * FROM description WHERE description_id = ?`;
+        const [result] = await pool.query(sql, [description_id]);
+        return result[0];
+    }
 
+    async deleteDescriptionByRoom(room_id) {
+        const sql = `DELETE FROM description WHERE room_id = ?`;
+        const [result] = await pool.query(sql, [room_id]);
+        return result;
+    }
+    
     
 }

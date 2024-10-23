@@ -16,6 +16,9 @@ router.post('/postmeetingroomdetail/:room_id',isAdmin,uploadMultiple,meetingRoom
 router.get('/getmeetingroomdetail/:room_id', meetingRoomController.getMeetingRoomDetailsByRoomIdController);
 router.patch('/updatemeetingroomdetail/:detail_id', isAdmin,uploaddetail,meetingRoomController.updateMeetingRoomDetailsController);
 router.get('/getdetail/:detail_id', meetingRoomController.getMeetingRoomDetailsByDetailIdController);
+router.post('/addDescription', meetingRoomController.addDescriptionController);
+router.patch('/updateDescription/:room_id', meetingRoomController.updateDescriptionByRoomController);
+router.delete('/deleteDescription/:room_id', meetingRoomController.deleteDescriptionByRoomController);
 
 export default router;
 

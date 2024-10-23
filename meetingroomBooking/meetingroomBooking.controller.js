@@ -157,92 +157,6 @@ export const getConfirmedBookingsController = async (req, res) => {
   }
 };
 
-//แก้ไขข้อมูล
-export const editBookingController = async (req, res) => {
-  const { booking_id } = req.params;
-  const errors = validationResult(req);
-
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      status: "fail",
-      code: 0,
-      message: "Validation errors",
-      errors: errors.array(),
-    });
-  }
-
-  const updatedData = {
-    room_id: req.body.room_id,
-    booking_date: req.body.booking_date,
-    start_time: req.body.start_time,
-    end_time: req.body.end_time,
-    purpose: req.body.purpose || null,
-  };
-
-  try {
-    const bookingService = new BookingService();
-
-    // ตรวจสอบสถานะการจองก่อนแก้ไข
-    const booking = await bookingService.getBookingById(booking_id);
-    if (!booking) {
-      return res.status(404).json({
-        status: "fail",
-        code: 0,
-        message: "Booking not found",
-      });
-    }
-
-    // ห้ามแก้ไขหากสถานะการจองได้รับการอนุมัติแล้ว
-    if (booking.status === "confirm") {
-      return res.status(400).json({
-        status: "fail",
-        code: 0,
-        message: "Cannot edit booking. It has already been confirmed.",
-      });
-    }
-
-    // ตรวจสอบว่าห้องว่างในช่วงเวลาที่แก้ไขใหม่หรือไม่
-    const isRoomAvailable = await bookingService.checkRoomAvailability(
-      updatedData.room_id,
-      updatedData.booking_date,
-      updatedData.start_time,
-      updatedData.end_time
-    );
-
-    if (!isRoomAvailable) {
-      return res.status(400).json({
-        status: "fail",
-        code: 0,
-        message: "Room is not available for the selected time.",
-      });
-    }
-
-    // ถ้าห้องว่าง ให้ทำการอัปเดตข้อมูลการจอง
-    const result = await bookingService.updateBooking(booking_id, updatedData);
-
-    if (result.affectedRows > 0) {
-      res.status(200).json({
-        status: "success",
-        code: 1,
-        message: "Booking updated successfully",
-        result,
-      });
-    } else {
-      res.status(400).json({
-        status: "fail",
-        code: 0,
-        message: "Booking could not be updated",
-      });
-    }
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      status: "fail",
-      code: 0,
-      message: error.message,
-    });
-  }
-};
 
 //ลบการจอง
 export const deleteBookingController = async (req, res) => {
@@ -301,7 +215,7 @@ export const approveBooking = async (req, res) => {
   const bookingId = req.params.id;
   const bookingService = new BookingService();
   const userService = new UserService();
-  const meetingRoomService = new MeetingRoomService(); // สร้าง MeetingRoomService
+  const meetingRoomService = new MeetingRoomService(); 
 
   try {
     // อัปเดตสถานะการจองเป็น 'confirm'
@@ -376,7 +290,7 @@ export const approveBooking = async (req, res) => {
             </div>
             </div> `;
 
-      // การส่งอีเมล
+
       const mailOptions = {
         from: process.env.EMAIL_USER,
         to: user.email,
@@ -384,10 +298,8 @@ export const approveBooking = async (req, res) => {
         html: emailHtml,
       };
 
-      // ส่งอีเมล
       await transporter.sendMail(mailOptions);
 
-      // ตอบกลับ
       res.status(200).json({
         status: "success",
         message: "การจองได้รับการอนุมัติและแจ้งเตือนผู้ใช้เรียบร้อยแล้ว",
@@ -411,25 +323,20 @@ export const rejectBooking = async (req, res) => {
   const bookingId = req.params.id;
   const bookingService = new BookingService();
   const userService = new UserService();
-  const meetingRoomService = new MeetingRoomService(); // สร้าง MeetingRoomService
+  const meetingRoomService = new MeetingRoomService();
 
   try {
-    const result = await bookingService.updateBookingStatus(
-      bookingId,
-      "cancel"
-    );
+    const result = await bookingService.updateBookingStatus(bookingId, "cancel");
     if (result.affectedRows > 0) {
-      // ดึงข้อมูลการจอง
       const booking = await bookingService.getBookingById(bookingId);
       if (!booking || !booking.user_id || !booking.room_id) {
-        // ตรวจสอบ booking, user_id, room_id ไม่ใช่ค่า null
         return res.status(404).json({
           status: "fail",
           message: "ไม่พบการจองนี้หรือไม่พบผู้ใช้หรือห้องประชุม",
         });
       }
 
-      // ดึงข้อมูลผู้ใช้จาก user_id
+
       const user = await userService.getUserById(booking.user_id);
       if (!user || !user.email) {
         return res.status(404).json({
@@ -438,10 +345,7 @@ export const rejectBooking = async (req, res) => {
         });
       }
 
-      // ดึงข้อมูลห้องประชุมจาก room_id
-      const meetingRoom = await meetingRoomService.getMeetingRoomById(
-        booking.room_id
-      );
+      const meetingRoom = await meetingRoomService.getMeetingRoomById(booking.room_id);
       if (!meetingRoom || !meetingRoom.room_name) {
         return res.status(404).json({
           status: "fail",
@@ -449,7 +353,6 @@ export const rejectBooking = async (req, res) => {
         });
       }
 
-      // การตั้งค่า Nodemailer
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
@@ -461,34 +364,27 @@ export const rejectBooking = async (req, res) => {
       const bookingDate = moment(booking.booking_date).format("DD/MM/YYYY");
 
       const emailHtmlcancel = `
-           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-    <h2 style="color: #4a4a4a; text-align: center; border-bottom: 2px solid #e74c3c; padding-bottom: 10px;">แจ้งการปฏิเสธการจองห้องประชุม</h2>
-    
-    <p style="color: #4a4a4a; font-size: 16px;">เรียนคุณ <strong>${user.firstname}</strong>,</p>
-    
-    <p style="color: #4a4a4a; font-size: 16px;">เรามีความเสียใจที่จะแจ้งให้ท่านทราบว่า การจองห้องประชุม <strong style="color: #e74c3c;">"${meetingRoom.room_name}"</strong> ของท่านได้ถูกปฏิเสธ</p>
-    
-    <div style="background-color: #f9f9f9; border-left: 4px solid #e74c3c; padding: 15px; margin: 20px 0;">
-        <h3 style="color: #e74c3c; margin-top: 0;">รายละเอียดการจองที่ถูกปฏิเสธ:</h3>
-        <ul style="list-style-type: none; padding: 0;">
-            <li style="margin-bottom: 10px;">📅 <strong>วันที่:</strong> ${bookingDate}</li>
-            <li style="margin-bottom: 10px;">🕒 <strong>เวลา:</strong> ${booking.start_time} ถึง ${booking.end_time}</li>
-            <li style="margin-bottom: 10px;">🔢 <strong>หมายเลขการจอง:</strong> ${booking.booking_id}</li>
-        </ul>
-    </div>
-    
-    <p style="color: #4a4a4a; font-size: 16px;">หากท่านมีคำถามเพิ่มเติมเกี่ยวกับการปฏิเสธการจองนี้หรือต้องการจองห้องประชุมใหม่ กรุณาติดต่อเจ้าหน้าที่ที่เกี่ยวข้อง</p>
-    
-    <p style="color: #4a4a4a; font-size: 16px; margin-top: 20px;">ขอแสดงความนับถือ,</p>
-    <p style="color: #4a4a4a; font-size: 16px; font-weight: bold;">ทีมงานฝ่ายจองห้องประชุม</p>
-    
-    <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; font-size: 14px; color: #888;">
-        <p>หากคุณต้องการความช่วยเหลือเพิ่มเติม กรุณาติดต่อ myboatnkpt@gmail.com</p>
-    </div>
-</div>
-`;
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+          <h2 style="color: #4a4a4a; text-align: center; border-bottom: 2px solid #e74c3c; padding-bottom: 10px;">แจ้งการปฏิเสธการจองห้องประชุม</h2>
+          <p style="color: #4a4a4a; font-size: 16px;">เรียนคุณ <strong>${user.firstname}</strong>,</p>
+          <p style="color: #4a4a4a; font-size: 16px;">เรามีความเสียใจที่จะแจ้งให้ท่านทราบว่า การจองห้องประชุม <strong style="color: #e74c3c;">"${meetingRoom.room_name}"</strong> ของท่านได้ถูกปฏิเสธ</p>
+          <div style="background-color: #f9f9f9; border-left: 4px solid #e74c3c; padding: 15px; margin: 20px 0;">
+              <h3 style="color: #e74c3c; margin-top: 0;">รายละเอียดการจองที่ถูกปฏิเสธ:</h3>
+              <ul style="list-style-type: none; padding: 0;">
+                  <li style="margin-bottom: 10px;">📅 <strong>วันที่:</strong> ${bookingDate}</li>
+                  <li style="margin-bottom: 10px;">🕒 <strong>เวลา:</strong> ${booking.start_time} ถึง ${booking.end_time}</li>
+                  <li style="margin-bottom: 10px;">🔢 <strong>หมายเลขการจอง:</strong> ${booking.booking_id}</li>
+              </ul>
+          </div>
+          <p style="color: #4a4a4a; font-size: 16px;">หากท่านมีคำถามเพิ่มเติมเกี่ยวกับการปฏิเสธการจองนี้หรือต้องการจองห้องประชุมใหม่ กรุณาติดต่อเจ้าหน้าที่ที่เกี่ยวข้อง</p>
+          <p style="color: #4a4a4a; font-size: 16px; margin-top: 20px;">ขอแสดงความนับถือ,</p>
+          <p style="color: #4a4a4a; font-size: 16px; font-weight: bold;">ทีมงานฝ่ายจองห้องประชุม</p>
+          <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; font-size: 14px; color: #888;">
+              <p>หากคุณต้องการความช่วยเหลือเพิ่มเติม กรุณาติดต่อ myboatnkpt@gmail.com</p>
+          </div>
+        </div>
+      `;
 
-      // เนื้อหาอีเมล
       const mailOptions = {
         from: process.env.EMAIL_USER,
         to: user.email,
@@ -496,13 +392,14 @@ export const rejectBooking = async (req, res) => {
         html: emailHtmlcancel,
       };
 
-      // ส่งอีเมล
       await transporter.sendMail(mailOptions);
 
-      // ตอบกลับ
+      await bookingService.deleteBooking(bookingId);
+
+
       res.status(200).json({
         status: "success",
-        message: "Booking rejected and user notified",
+        message: "ส่งการแจ้งเตือนให้กับผู้ใช้และลบการจองออกจากระบบเรียบร้อยแล้ว",
       });
     } else {
       res.status(400).json({

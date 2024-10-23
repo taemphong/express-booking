@@ -200,19 +200,26 @@ export const usersupdateValidationRules = () => {
     ];
 };
 
-export const resetPasswordValidationRules = () => {
+export const resetPasswordValidationRules1 = () => {
     return [
-        body('confirmationCode')
-            .notEmpty()
-            .withMessage('กรุณากรอกรหัสยืนยัน'),
-
-
         body('newPassword')
-        .matches(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@#$%^&*()!,.?])[A-Za-z\d@#$%^&*()!,.?]+$/)
-        .withMessage('รหัสผ่านต้องประกอบด้วยตัวอักษรภาษาอังกฤษอย่างน้อย 1 ตัว, ตัวเลขอย่างน้อย 1 ตัว และอักขระพิเศษอย่างน้อย 1 ตัว')
-        .isLength({ min: 6 })
-        .withMessage('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร')
-        .notEmpty()
-        .withMessage('กรุณากรอก Password is required'),
+            .matches(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@#$%^&*()!,.?])[A-Za-z\d@#$%^&*()!,.?]+$/)
+            .withMessage('รหัสผ่านต้องประกอบด้วยตัวอักษรภาษาอังกฤษอย่างน้อย 1 ตัว, ตัวเลขอย่างน้อย 1 ตัว และอักขระพิเศษอย่างน้อย 1 ตัว')
+            .isLength({ min: 6 })
+            .withMessage('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร')
+            .notEmpty()
+            .withMessage('กรุณากรอกรหัสผ่าน'),
+
+        body('repeatPassword')
+            .notEmpty()
+            .withMessage('กรุณากรอกการยืนยันรหัสผ่าน'),
+
+        body('repeatPassword')
+            .custom((value, { req }) => {
+                if (value !== req.body.newPassword) {
+                    throw new Error('รหัสผ่านและการยืนยันรหัสผ่านต้องเหมือนกัน');
+                }
+                return true;
+            })
     ];
 };

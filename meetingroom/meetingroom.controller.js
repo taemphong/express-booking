@@ -328,3 +328,97 @@ export const updateMeetingRoomDetailsController = async (req, res) => {
         });
     }
 };
+
+export const addDescriptionController = async (req, res) => {
+    const { room_id, description_text } = req.body;
+
+    const meetingRoomService = new MeetingRoomService();
+
+    try {
+        const meetingRoom = await meetingRoomService.getMeetingRoomById(room_id);
+        if (!meetingRoom) {
+            return res.status(404).send({
+                status: 'error',
+                message: 'ไม่พบห้องประชุมที่มีรหัสนี้',
+            });
+        }
+
+        const newDescription = await meetingRoomService.addDescription(room_id, description_text);
+
+        res.status(201).send({
+            status: 'success',
+            message: 'เพิ่มคำอธิบายสำเร็จ',
+            data: newDescription,
+        });
+    } catch (error) {
+        res.status(500).send({
+            status: 'error',
+            message: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์',
+            cause: error.message,
+        });
+    }
+};
+
+export const updateDescriptionByRoomController = async (req, res) => {
+    const { room_id } = req.params; 
+    const { description_text } = req.body; 
+
+    const meetingRoomService = new MeetingRoomService();
+
+    try {
+     
+        const meetingRoom = await meetingRoomService.getMeetingRoomById(room_id);
+        if (!meetingRoom) {
+            return res.status(404).send({
+                status: 'error',
+                message: 'ไม่พบห้องประชุมที่มีรหัสนี้',
+            });
+        }
+
+        const updatedResult = await meetingRoomService.updateDescriptionByRoom(room_id, { description_text });
+
+        res.status(200).send({
+            status: 'success',
+            message: 'อัปเดตคำอธิบายสำเร็จ',
+            data: updatedResult,
+        });
+    } catch (error) {
+        res.status(500).send({
+            status: 'error',
+            message: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์',
+            cause: error.message,
+        });
+    }
+};
+
+
+export const deleteDescriptionByRoomController = async (req, res) => {
+    const { room_id } = req.params; 
+
+    const meetingRoomService = new MeetingRoomService();
+
+    try {
+      
+        const meetingRoom = await meetingRoomService.getMeetingRoomById(room_id);
+        if (!meetingRoom) {
+            return res.status(404).send({
+                status: 'error',
+                message: 'ไม่พบห้องประชุมที่มีรหัสนี้',
+            });
+        }
+
+        const deleteResult = await meetingRoomService.deleteDescriptionByRoom(room_id);
+
+        res.status(200).send({
+            status: 'success',
+            message: 'ลบคำอธิบายสำเร็จ',
+            data: deleteResult,
+        });
+    } catch (error) {
+        res.status(500).send({
+            status: 'error',
+            message: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์',
+            cause: error.message,
+        });
+    }
+};

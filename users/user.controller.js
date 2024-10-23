@@ -309,7 +309,7 @@ export const forgotPassword = async (req, res) => {
 
         // สร้างรหัสยืนยัน
         const confirmationCode = crypto.randomBytes(3).toString('hex'); 
-        const codeExpiry = new Date(Date.now() + 15 * 60 * 1000); // กำหนดวันหมดอายุเป็น 15 นาที
+        const codeExpiry = new Date(Date.now() + 5 * 60 * 1000); // กำหนดวันหมดอายุเป็น 5 นาที
 
         // บันทึกรหัสยืนยันและวันหมดอายุในฐานข้อมูล
         await userService.saveConfirmationCode(user.user_id, confirmationCode, codeExpiry);
@@ -351,8 +351,44 @@ export const forgotPassword = async (req, res) => {
     }
 };
 
+export const verifyConfirmationCode = async (req, res) => {
+    const { confirmationCode, email } = req.body;
+
+    if (!confirmationCode) {
+        return res.status(400).send({
+            status: 'error',
+            message: 'กรุณากรอกรหัสยืนยันตัวตนของคุณ',
+        });
+    }
+
+    try {
+        const userService = new UserService();
+        const user = await userService.getUserByEmail(email);
+
+        if (!user || user.confirmation_code !== confirmationCode || user.code_expiry < new Date()) {
+            return res.status(400).send({
+                status: 'error',
+                message: 'รหัสยืนยันไม่ถูกต้องหรือหมดอายุ',
+            });
+        }
+
+        res.status(200).send({
+            status: 'success',
+            message: 'รหัสยืนยันถูกต้อง',
+        });
+
+    } catch (error) {
+        res.status(500).send({
+            status: 'error',
+            message: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์',
+            cause: error.message,
+        });
+    }
+};
+
 export const resetPassword = async (req, res) => {
-    const { confirmationCode, email, newPassword } = req.body;
+    const { email, newPassword } = req.body;
+
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -363,25 +399,23 @@ export const resetPassword = async (req, res) => {
         const userService = new UserService();
         const user = await userService.getUserByEmail(email);
 
-        // ตรวจสอบรหัสยืนยันและวันหมดอายุ
-        if (!user || user.confirmation_code !== confirmationCode || user.code_expiry < new Date()) {
-            return res.status(400).send({
+        if (!user) {
+            return res.status(404).send({
                 status: 'error',
-                message: 'รหัสยืนยันไม่ถูกต้องหรือหมดอายุ',
+                message: 'ไม่พบผู้ใช้',
             });
         }
 
-        // แฮชรหัสผ่านใหม่และอัปเดตในฐานข้อมูล
         const hashedPassword = md5(newPassword);
         await userService.updatePassword(user.user_id, hashedPassword);
 
-        // ล้างรหัสยืนยันหลังจากใช้แล้ว
         await userService.clearConfirmationCode(user.user_id);
 
         res.status(200).send({
             status: 'success',
             message: 'รีเซ็ตรหัสผ่านสำเร็จ',
         });
+
     } catch (error) {
         res.status(500).send({
             status: 'error',
@@ -413,17 +447,16 @@ export const getUserByUsername = async (req, res) => {
 };
 
 export const getUserByEmailController = async (req, res) => {
-    const { email } = req.body; // ดึงอีเมลจาก body ของ request
+    const { email } = req.body; 
 
-    // ตรวจสอบความถูกต้องของข้อมูล
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
 
     try {
-        const userService = new UserService(); // สร้าง instance ของ UserService
-        const user = await userService.getUserByEmail(email); // เรียกใช้งานฟังก์ชัน getUserByEmail
+        const userService = new UserService(); 
+        const user = await userService.getUserByEmail(email); 
 
         if (!user) {
             return res.status(404).send({
