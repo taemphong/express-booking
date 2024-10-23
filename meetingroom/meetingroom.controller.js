@@ -422,3 +422,31 @@ export const deleteDescriptionByRoomController = async (req, res) => {
         });
     }
 };
+
+export const getDescriptionByRoomIdController = async (req, res) => {
+    const { room_id } = req.params; 
+
+    const meetingRoomService = new MeetingRoomService();
+
+    try {
+        const description = await meetingRoomService.getDescriptionByRoomId(room_id);
+        if (!description) {
+            return res.status(404).send({
+                status: 'error',
+                message: 'ไม่พบคำอธิบายสำหรับห้องประชุมนี้',
+            });
+        }
+
+        res.status(200).send({
+            status: 'success',
+            message: 'ดึงคำอธิบายสำเร็จ',
+            data: description,
+        });
+    } catch (error) {
+        res.status(500).send({
+            status: 'error',
+            message: 'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์',
+            cause: error.message,
+        });
+    }
+};

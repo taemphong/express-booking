@@ -70,9 +70,9 @@ export default class MeetingRoomService {
     }
     
     
-    async getDescriptionById(description_id) {
-        const sql = `SELECT * FROM description WHERE description_id = ?`;
-        const [result] = await pool.query(sql, [description_id]);
+    async getDescriptionByRoomId(room_id) {
+        const sql = `SELECT * FROM description WHERE room_id = ?`;
+        const [result] = await pool.query(sql, [room_id]);
         return result[0];
     }
 

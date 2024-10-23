@@ -19,7 +19,7 @@ router.get('/getdetail/:detail_id', meetingRoomController.getMeetingRoomDetailsB
 router.post('/addDescription', meetingRoomController.addDescriptionController);
 router.patch('/updateDescription/:room_id', meetingRoomController.updateDescriptionByRoomController);
 router.delete('/deleteDescription/:room_id', meetingRoomController.deleteDescriptionByRoomController);
-
+router.get('/getDescriptionByroom/:room_id', meetingRoomController.getDescriptionByRoomIdController);
 export default router;
 
 
