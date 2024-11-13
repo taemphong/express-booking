@@ -36,10 +36,10 @@ export const usersValidationRules = () => {
         body('username')
         .trim()
         .isString()
-        .matches(/^[A-Za-z0-9]+$/) // อนุญาตเฉพาะตัวอักษรและตัวเลข
+        .matches(/^[A-Za-zก-ฮ่-๋์ะ-ๅาำิ-ฺเ-๏ฯๆ0-9\.\s\-]+$/)
         .withMessage('ชื่อผู้ใช้ต้องเป็นข้อความที่ประกอบด้วยตัวอักษรและตัวเลขเท่านั้น')
         .notEmpty()
-        .withMessage('กรุณากรอก Username')
+        .withMessage('กรุณากรอกชื่อผู้ใช้')
         .custom(async (value) => {
             const userService = new UserService();
             const user = await userService.getUserByUsername(value);
@@ -51,18 +51,18 @@ export const usersValidationRules = () => {
 
         body('firstname')
             .trim()
-            .matches(/^[A-Za-zก-ฮ\s\-]+$/)
+            .matches(/^[A-Za-zก-ฮ่-๋์ะ-ๅาำิ-ฺเ-๏ฯๆ\.\s\-]+$/)
             .withMessage('ชื่อต้องเป็นข้อความที่ประกอบด้วยตัวอักษรเท่านั้น')
             .notEmpty()
-            .withMessage('กรุณากรอก First name'),
+            .withMessage('กรุณากรอกชื่อของคุณ'),
 
         body('lastname')
             .trim()
             .isString()
-            .matches(/^[A-Za-zก-ฮ\s\-]+$/)
+            .matches(/^[A-Za-zก-ฮ่-๋์ะ-ๅาำิ-ฺเ-๏ฯๆ\.\s\-]+$/)
             .withMessage('นามสกุลต้องเป็นข้อความที่ประกอบด้วยตัวอักษรเท่านั้น')
             .notEmpty()
-            .withMessage('กรุณากรอก Last name '),
+            .withMessage('กรุณากรอกนามสกุลของคุณ'),
 
             body('email')
             .isEmail()
@@ -84,18 +84,18 @@ export const usersValidationRules = () => {
             .isLength({ min: 6 })
             .withMessage('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร')
             .notEmpty()
-            .withMessage('กรุณากรอก Password is required'),
+            .withMessage('กรุณากรอกรหัสผ่าน'),
 
         body('department')
             .optional()
             .isString()
-            .matches(/^[A-Za-zก-ฮ]+$/)
+            .matches(/^[A-Za-zก-ฮ่-๋์ะ-ูๅๆฯ\.\s\-]+$/)
             .withMessage('แผนกต้องเป็นข้อความที่ประกอบด้วยตัวอักษรเท่านั้น'),
 
         body('role')
             .optional()
             .isIn(['user', 'admin'])
-            .withMessage('Role must be either user or admin'),
+            .withMessage('Role ต้องเป็น user หรือ admin'),
 
             body('phone_number')
             .optional()  
@@ -118,35 +118,20 @@ export const usersValidationRules = () => {
 
 export const usersupdateValidationRules = () => {
     return [
-        body('username')
-        .trim()
-        .isString()
-        .matches(/^[A-Za-z0-9]+$/) // อนุญาตเฉพาะตัวอักษรและตัวเลข
-        .withMessage('ชื่อผู้ใช้ต้องเป็นข้อความที่ประกอบด้วยตัวอักษรและตัวเลขเท่านั้น')
-        .notEmpty()
-        .withMessage('กรุณากรอก Username')
-        .custom(async (value) => {
-            const userService = new UserService();
-            const user = await userService.getUserByUsername(value);
-            if (user) {
-                throw new Error('ชื่อผู้ใช้นี้ถูกใช้งานแล้ว'); 
-            }
-            return true; 
-        }),
-
+        
         body('firstname')
             .isString()
-            .matches(/^[A-Za-zก-ฮ\s\-]+$/) // ตัวอักษรภาษาไทยหรืออังกฤษ
+            .matches(/^[A-Za-zก-ฮ่-๋์ะ-ๅาำิ-ฺเ-๏ฯๆ\.\s\-]+$/)
             .withMessage('ชื่อต้องเป็นข้อความที่ประกอบด้วยตัวอักษรเท่านั้น')
             .notEmpty()
-            .withMessage('กรุณากรอก First name'),
+            .withMessage('กรุณากรอกชื่อของคุณ'),
 
         body('lastname')
             .isString()
-            .matches(/^[A-Za-zก-ฮ\s\-]+$/)
+            .matches(/^[A-Za-zก-ฮ่-๋์ะ-ๅาำิ-ฺเ-๏ฯๆ\.\s\-]+$/)
             .withMessage('นามสกุลต้องเป็นข้อความที่ประกอบด้วยตัวอักษรเท่านั้น')
             .notEmpty()
-            .withMessage('กรุณากรอก Last name'),
+            .withMessage('กรุณากรอกนามสกุลของคุณ'),
 
         body('email')
             .trim()
@@ -181,8 +166,8 @@ export const usersupdateValidationRules = () => {
         body('department')
             .optional()
             .isString()
-            .matches(/^[A-Za-zก-ฮ]+$/)
-            .withMessage('นามสกุลต้องเป็นข้อความที่ประกอบด้วยตัวอักษรเท่านั้น'),
+            .matches(/^[A-Za-zก-ฮ่-๋์ะ-ๅาำิ-ฺเ-๏ฯๆ\.\s\-]+$/)
+            .withMessage('แผนกต้องเป็นข้อความที่ประกอบด้วยตัวอักษรเท่านั้น'),
 
         body('role')
             .optional()

@@ -5,10 +5,11 @@ import { bookingValidationRules } from "../Middleware/validation.js";
 const router = Router();
 
 router.post('/postbooking', bookingValidationRules(),meetingroomBookingController.addBookingController);
-router.get('/getbooking', isAdmin,meetingroomBookingController.getBookingsController);
+router.get('/getbooking',meetingroomBookingController.getBookingsController);
 router.delete('/deletebooking/:booking_id', meetingroomBookingController.deleteBookingController);
 router.get('/getuserbooking/:user_id', meetingroomBookingController.getUserBookingsController);
 router.get('/get-confirmed-booking', meetingroomBookingController.getConfirmedBookingsController);
+router.get('/getpendingByroomID/:room_id', meetingroomBookingController.getPendingBookingsByRoomIdController);
 
 //  สำหรับ Admin
 router.get('/admin/pending-booking',isAdmin, meetingroomBookingController.getPendingBookings); 

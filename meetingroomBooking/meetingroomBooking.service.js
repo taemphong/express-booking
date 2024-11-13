@@ -124,4 +124,11 @@ export default class BookingService {
         const [rows] = await pool.query(sql);
         return rows;
     }
+
+    async getPendingBookingsByRoomId(room_id) {
+        const sql = 'SELECT room_id, booking_date, start_time, end_time FROM meeting_room_booking WHERE room_id = ?';
+        const [rows] = await pool.query(sql, [room_id]);
+        return rows;
+    }
 }
+

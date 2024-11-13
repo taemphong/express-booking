@@ -226,12 +226,11 @@ export const updateUserController = async (req, res) => {
     }
 
     const { id } = req.params;
-    const { username, firstname, lastname, email, department, phone_number } = req.body;
+    const { firstname, lastname, email, department, phone_number } = req.body;
 
     try {
-        // 1. ตรวจสอบข้อมูลผู้ใช้จาก username และ password ปัจจุบัน
         const userService = new UserService();
-        const user = await userService.getUserById(id);  // แทนที่ด้วยการดึงข้อมูลผู้ใช้จาก user_id
+        const user = await userService.getUserById(id);  
 
         if (!user) {
             return res.status(401).send({
@@ -242,9 +241,7 @@ export const updateUserController = async (req, res) => {
             });
         }
 
-        // 2. เตรียมข้อมูลที่ต้องการอัปเดต โดยไม่แตะต้อง password_hash
         const updatedData = {
-            username: username,
             firstname: firstname,
             lastname: lastname,
             email: email,
@@ -253,7 +250,6 @@ export const updateUserController = async (req, res) => {
             phone_number: phone_number,
         };
 
-        // 3. ทำการอัปเดตข้อมูลในฐานข้อมูล
         const result = await userService.updateUser(id, updatedData);
 
         if (result.affectedRows) {

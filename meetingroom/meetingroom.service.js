@@ -28,6 +28,7 @@ export default class MeetingRoomService {
     }
 
     async deleteMeetingRoom(roomId) {
+        await pool.query(`DELETE FROM description WHERE room_id = ?`, [roomId]);
         const sql = `DELETE FROM meeting_room WHERE room_id = ?`;
         const [result] = await pool.query(sql, [roomId]);
         return result;

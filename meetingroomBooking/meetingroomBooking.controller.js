@@ -414,3 +414,28 @@ export const rejectBooking = async (req, res) => {
     });
   }
 };
+
+export const getPendingBookingsByRoomIdController = async (req, res) => {
+  const { room_id } = req.params;
+  const bookingService = new BookingService();
+
+  try {
+      const pendingBookings = await bookingService.getPendingBookingsByRoomId(room_id);
+      if (pendingBookings.length === 0) {
+          return res.status(404).json({
+              status: 'error',
+              message: 'ไม่พบการจองที่รอดำเนินการสำหรับห้องประชุมนี้',
+          });
+      }
+
+      res.status(200).json({
+          status: 'success',
+          bookings: pendingBookings,
+      });
+  } catch (error) {
+      res.status(500).json({
+          status: 'fail',
+          message: error.message,
+      });
+  }
+};
