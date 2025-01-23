@@ -8,7 +8,7 @@ import nodemailer from 'nodemailer';
 
 dotenv.config();
 
-//ดึงข้อมูล user ทั้งหมด
+
 export const getUsers = async (req, res) => {
     try {
         const result = await new UserService().getUsers();
@@ -38,7 +38,7 @@ export const getUsers = async (req, res) => {
     }
 };
 
-//ดึงข้อมูล user ด้วย id
+
 export const getUserById = async (req, res) => {
     const { id } = req.params; 
     try {
@@ -68,7 +68,7 @@ export const getUserById = async (req, res) => {
     }
 };
 
-//สร้าง account user ใช้ validationResult เช็คการใส่ข้อมูลต้องใส่ข้อมูลที่ถูกต้อง
+
 export const insertUser = async (req, res) => {
 
     const errors = validationResult(req);
@@ -113,7 +113,6 @@ export const insertUser = async (req, res) => {
     };
    
 
-//เช็คข้อมูล user หรือ admin เพื่อเข้าสู่ระบบจะให้ token มา ใช้token เพื่อเช็คว่าเป็น user หรือ admin
 export const loginuser = async (req, res) => {
     const { username, password } = req.body;
     const hashedPassword = md5(password);
@@ -185,7 +184,6 @@ export const loginuser = async (req, res) => {
     }
 };
 
-//ลบ user ออกจากระบบถ้า userมีการจองห้องประชุมค้างอยู่จะลบข้อมูลการจองออกด้วย
 export const deleteUser = async (req, res) => {
     const { id } = req.params; 
     
@@ -217,7 +215,6 @@ export const deleteUser = async (req, res) => {
     }
 };
 
-//อัปเดตข้อมูล user ตามid
 export const updateUserController = async (req, res) => {
 
     const errors = validationResult(req);
@@ -245,7 +242,7 @@ export const updateUserController = async (req, res) => {
             firstname: firstname,
             lastname: lastname,
             email: email,
-            password_hash: user.password_hash,  // คงรหัสผ่านเดิม
+            password_hash: user.password_hash,  
             department: department,
             phone_number: phone_number,
         };
