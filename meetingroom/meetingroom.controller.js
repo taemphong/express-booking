@@ -2,7 +2,6 @@ import MeetingRoomService from './meetingroom.service.js';
 
 const meetingRoomService = new MeetingRoomService();
 
-//adminดูข้อมูลห้อง
 export const getMeetingRoomsController = async (req, res) => {
     try {
         const rooms = await meetingRoomService.getMeetingRooms();
@@ -39,7 +38,6 @@ export const getMeetingRoomByIdController = async (req, res) => {
 };
 
 
-//adminสร้างห้องประชุม
 export const addMeetingRoomController = async (req, res) => {
     const meetingRoom = {
         room_name: req.body.room_name,
@@ -83,7 +81,6 @@ export const addMeetingRoomController = async (req, res) => {
     }
 };
 
-//adminอัปเดตห้อง
 export const updateMeetingRoomController = async (req, res) => {
     const roomId = req.params.id; 
 
@@ -130,7 +127,7 @@ export const updateMeetingRoomController = async (req, res) => {
 };
 
 
-//adminลบห้อง
+
 export const deleteMeetingRoomController = async (req, res) => {
     const roomId = req.params.id; 
 
@@ -455,7 +452,6 @@ export const deleteMeetingRoomDetailsByRoomIdController = async (req, res) => {
     const roomId = req.params.room_id;
 
     try {
-        // เรียกใช้บริการเพื่อลบรายละเอียดห้องประชุมตาม room_id
         const result = await meetingRoomService.deleteMeetingRoomDetailsByRoomId(roomId);
 
         if (result.affectedRows > 0) {
