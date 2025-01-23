@@ -1,5 +1,6 @@
 import BookingHistoryService from "./bookinghistory.service.js";
 
+
 export const getBookingHistoryController = async (req, res) => {
     try {
         const bookingHistoryService = new BookingHistoryService();
